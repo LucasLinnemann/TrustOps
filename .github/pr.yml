@@ -1,0 +1,11 @@
+name: PR Checks
+on: [pull_request]
+
+jobs:
+  trustops-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Echo skeleton
+        run: echo "TrustOps PR CI skeleton running"
