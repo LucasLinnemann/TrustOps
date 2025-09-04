@@ -1,60 +1,73 @@
-# TrustOps Baseline SOC 2 Rules (v1)
+TrustOps — SOC 2 Baseline (Public / Demo) (v1)
 
-Each rule: **Intent → Enforcement → Evidence**  
+Public demo only. Implementation details, production rule files, signing keys, and any operational secrets are kept in a private repository. This document describes the intent of each control and the types of evidence collected for audit purposes.
+
+Each rule: Intent → Implementation (private) → Evidence
 Mapped to SOC 2 Trust Services Criteria (TSC).
 
----
+	1.	MFA for privileged access (CC6, CC7)
 
-1. **MFA for privileged access** (CC6, CC7)  
-- Intent: Protect against credential-only compromise.  
-- Enforcement: CI requires SSO+MFA for maintainers; AWS IAM MFA enabled for admins.  
-- Evidence: CI org settings export; screenshot/policy export of MFA enforcement.
+	•	Intent: Reduce risk of account compromise by requiring multi-factor authentication for privileged users.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Policy export or governance snapshot showing MFA requirement; sanitized configuration export.
 
-2. **RBAC & least privilege** (CC6)  
-- Intent: Ensure users/services have minimum rights.  
-- Enforcement: Terraform denies `AdministratorAccess`; scoped IAM roles only.  
-- Evidence: `terraform show` redacted + `aws iam list-attached-role-policies`.
+	2.	RBAC & least privilege (CC6)
 
-3. **Secrets outside repo** (CC6, C1)  
-- Intent: No hardcoded secrets.  
-- Enforcement: Conftest denies plaintext in configs; require SSM Parameter Store refs.  
-- Evidence: Scanner logs + Parameter Store keys.
+	•	Intent: Ensure users and services have only the permissions they need.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Role/policy inventory or role configuration summary (sanitized).
 
-4. **TLS enforced end-to-end** (CC6)  
-- Intent: Protect data in transit.  
-- Enforcement: Deny non-TLS listeners; app redirects to HTTPS.  
-- Evidence: Terraform plan flags; `curl -I https://` check.
+	3.	Secrets kept out of source (CC6, C1)
 
-5. **Centralized logging** (CC7)  
-- Intent: Enable visibility into system activity.  
-- Enforcement: Terraform attaches CloudWatch Logs/metrics to workloads.  
-- Evidence: Dashboard JSON + sample log stream.
+	•	Intent: Prevent hard-coded secrets, keys, or credentials in source code.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Secret-scan report (sanitized) and reference to secret management usage.
 
-6. **Encryption at rest** (CC6, C1)  
-- Intent: Protect data at rest.  
-- Enforcement: S3 SSE on; EBS encrypted; RDS `storage_encrypted=true`.  
-- Evidence: AWS resource summaries.
+	4.	TLS enforced (data in transit) (CC6)
 
-7. **Automated backups** (A1)  
-- Intent: Ensure recovery capability.  
-- Enforcement: Backup plans for DB/storage; restore tested in sandbox.  
-- Evidence: Last backup timestamp + restore test log.
+	•	Intent: Protect data in transit by enforcing TLS for external and internal endpoints.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Configuration snapshot showing enforced TLS (sanitized).
 
-8. **Change mgmt approvals** (CC8)  
-- Intent: Require peer review for changes.  
-- Enforcement: Protected branches, code owners, PR reviews.  
-- Evidence: Branch protection export + sample PR history.
+	5.	Centralized logging & auditability (CC7)
 
-9. **Monitoring & alert thresholds** (A1)  
-- Intent: Detect downtime or errors quickly.  
-- Enforcement: CloudWatch alarms for 5xx/error budget burn.  
-- Evidence: Alarm definitions + triggered sample.
+	•	Intent: Maintain telemetry and audit logs to support detection and investigation.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Example log-collection configuration and a sanitized sample log export.
 
-10. **Policy violations alerting** (CC7)  
-- Intent: Make compliance failures visible.  
-- Enforcement: CI fails on OPA/Checkov violations; optional notifications.  
-- Evidence: CI logs + notification proof.
+	6.	Encryption at rest (CC6, C1)
 
----
+	•	Intent: Protect stored data using at-rest encryption.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Resource configuration summary indicating encryption (sanitized).
 
-> Note: Only AWS Free Tier + open-source tooling is used. Secrets Manager, EKS, and paid services are deferred until later versions.
+	7.	Automated backups & tested restores (A1)
+
+	•	Intent: Ensure recoverability of critical data through backups and restore tests.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Backup schedule summary and example restore-test result (sanitized).
+
+	8.	Change management & code review (CC8)
+
+	•	Intent: Require peer review and approvals for production changes.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Branch protection summary and an anonymized sample of approved change history.
+
+	9.	Monitoring & alerting (A1)
+
+	•	Intent: Detect operational issues and incidents via defined alarms and thresholds.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Alarm/metric definition summary and a sanitized sample alert event.
+
+	10.	Policy violation detection & notification (CC7)
+
+	•	Intent: Ensure compliance failures are detected pre-merge or in runtime and are actionable.
+	•	Implementation: Production enforcement is private.
+	•	Evidence: Policy-scan summary and an example notification (sanitized).
+
+Notes
+	•	This file is an illustrative summary of the intent and the types of evidence TrustOps collects for SOC 2 evaluations.
+	•	The production enforcement mechanisms, concrete rule definitions, and signing/verification keys are not published here.
+	•	For reproducible demo outputs and example reports, see test-vectors/ and examples/ in this repository (example artifacts are sanitized and watermarked).
+
+Prepared for publishing in the public demo repository.

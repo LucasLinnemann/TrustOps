@@ -1,59 +1,48 @@
-# TrustOps Architecture (v1)
+TrustOps Architecture (Public / Demo) (v1)
 
-**Goal:** Provide SOC 2 essentials as code: policy gates in CI/CD + AWS runtime checks + automated evidence collection — all running on AWS Free Tier.
+Goal: Provide SOC 2 essentials as code: policy gates in CI/CD + cloud runtime checks + automated evidence collection — designed to run within free-tier/small-scale cloud resources for demos.
 
----
+Components
+	•	CI/CD: GitHub Actions (pull request checks + main deploys).
+	•	Policy-as-Code: OPA/Conftest and Checkov (policy checks and IaC scans).
+	•	IaC: Terraform for provisioning cloud resources.
+	•	Cloud (demo):
+	•	Small compute instances / container hosts (free-tier or equivalent).
+	•	Versioned object store for evidence export.
+	•	Configuration & posture service for baseline checks.
+	•	Centralized logging and dashboards.
+	•	Secure parameter store for secrets (production secrets are not stored in repo).
 
-## Components
+Flow
+	1.	Developer PR → GitHub Actions runs build/tests + policy-as-code scans.
+	2.	Policy Gate:
+	•	❌ Fail if controls are violated.
+	•	✅ Pass → Terraform plan (and optional apply in authorized environments).
+	3.	Deploy → Demo cloud resources created for app, logging, and config snapshots.
+	4.	Runtime Governance:
+	•	Baseline config evaluates drift and compliance.
+	•	Centralized logging collects telemetry and metrics.
+	5.	Evidence Export:
+	•	CI artifacts (policy results, sanitized plan summaries).
+	•	Cloud posture snapshots (sanitized configuration exports).
+	•	Stored in a versioned evidence bucket with retention policies.
 
-- **CI/CD**: GitHub Actions (pull request checks + main deploys).
-- **Policy-as-Code**: OPA/Conftest and Checkov to scan Terraform plans, configs, and app settings.
-- **IaC**: Terraform for provisioning AWS Free Tier resources.
-- **Cloud**: 
-  - EC2 t2.micro / ECS (EC2 launch type)
-  - S3 evidence bucket (versioned, lifecycle policy)
-  - AWS Config (baseline managed rules)
-  - CloudWatch (logs + dashboards)
-  - SSM Parameter Store (secrets)
-  - KMS (encryption free tier requests)
+Repo Layout
 
----
-
-## Flow
-
-1. **Developer PR** → GitHub Actions runs build/tests + OPA/Checkov scans.
-2. **Policy Gate**:
-   - ❌ Fail if controls violated.
-   - ✅ Pass → Terraform plan/apply.
-3. **Deploy** → AWS Free Tier resources created (app + logging + config).
-4. **Runtime Governance**:
-   - AWS Config evaluates drift and compliance.
-   - CloudWatch collects logs and metrics.
-5. **Evidence Export**:
-   - CI artifacts (policy results, Terraform plans).
-   - Cloud posture (Config snapshots, AWS CLI describes).
-   - Stored in S3 with versioning + lifecycle retention.
-
----
-
-## Repo Layout
 TrustOps/
-├─ app/                # demo API (.NET 8 later)
-├─ infra/              # Terraform (AWS)
-├─ soc2-rules/         # OPA/Checkov policies
-├─ docs/               # architecture & SOC2 rules
-└─ .github/workflows/  # CI/CD
+├─ app/                # demo API and integration examples
+├─ infra/              # Terraform (demo infrastructure)
+├─ soc2-rules/         # policy-as-code examples (public/demo rules only)
+├─ docs/               # architecture & SOC2 rules (sanitized)
+└─ .github/workflows/  # CI/CD demo workflows
 
----
+Trust Boundaries
+	•	CI/CD → Cloud via short-lived credentials or OIDC (no long-lived credentials checked into repository).
+	•	Secrets are stored in a secure parameter store in production; demo artifacts do not contain secrets.
+	•	Evidence bucket is write-controlled by CI and read-accessible to authorized compliance roles only.
 
-## Trust Boundaries
+Summary
 
-- **CI/CD → AWS** via GitHub OIDC (no long-lived keys).
-- **Secrets** in SSM Parameter Store, never in repo/CI logs.
-- **Evidence bucket** write-once by CI, read-only by compliance role.
+This architecture shows the demo-level flow for enforcing policy gates before merge, running posture checks at runtime, and collecting sanitized evidence for audit. Production enforcement configurations and signing/verification mechanisms are maintained in the private repository.
 
----
-
-## Summary
-
-TrustOps enforces compliance **before merge**, checks drift **after deploy**, and generates **immutable audit evidence** — showing engineers and compliance teams exactly where they stand.
+Prepared for publishing in the public demo repository.
